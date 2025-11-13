@@ -30,7 +30,7 @@ public class serverGUi extends JFrame {
         appendLog("Server starting...");
 
         // התחברות DB פעם אחת
-        Database.connect("root", "271296Asd!!!");
+        Database.connect("admin", "admin");
 
         // הפעלת שרת בחוט נפרד כדי לא לחסום את ה-GUI
         new Thread(() -> {
