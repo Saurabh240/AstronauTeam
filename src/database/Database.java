@@ -29,7 +29,7 @@ public class Database {
     public static   void connect(String username, String password) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/astronaugame?allowPublicKeyRetrieval=true&useSSL=false", username, password);
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/myapp?allowPublicKeyRetrieval=true&useSSL=false", username, password);
 
         } catch (SQLException | ClassNotFoundException e) {
 

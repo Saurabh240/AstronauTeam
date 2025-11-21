@@ -2,6 +2,7 @@ package screens;
 
 import Server.Serverconnection;
 import Gamelogic.UserBlocker;
+import database.Database;
 import datamodels.User;
 
 import javax.swing.*;
@@ -135,58 +136,55 @@ public class LoginScreenGrid_GUI extends JFrame {
         loginButton.setPreferredSize(new Dimension(160,40));
 
 
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        loginButton.addActionListener(e -> {
+            loginButton.setEnabled(false); // prevent multiple clicks
 
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
 
-                boolean logedin = login_user(usernameField.getText().toString(),passwordField.getText().toString());
+            // Run login in background to avoid freezing
+            new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() {
+                    try {
+                        // Try connecting to DB or server
+                        Serverconnection.getInstance().connect();
+                        Database.connect("admin", "admin");
 
-                if(logedin) {
-
-                    User user = getUser(usernameField.getText().toString());
-
-                    String role = user.getRole();
-
-                    if(!userBlocker.canLogin(usernameField.getText().toString())){
-                          JOptionPane.showMessageDialog(
-                                  null,
-                                  "משתמש עדיין במצב חסימה , אנא נסה שנית מאוחר יותר",
-                                      "Error",
-                                  JOptionPane.ERROR_MESSAGE
-                          );
-                    }else {
-
-                        if (role.equals("Operator")) {
-                            SwingUtilities.getWindowAncestor(loginButton).dispose();
-                            Managment_system_main_screen_GUI managmentSystemMainScreenGui = new Managment_system_main_screen_GUI("127.0.0.1:3306",9999);
-                            managmentSystemMainScreenGui.setVisible(true);
-
-                        } else {
-
-                            SwingUtilities.getWindowAncestor(loginButton).dispose();
-                            managmentSystemMainScreenGui.addLog("התחבר בהצלחה"+usernameField.getText().toString()+"המישתמש:");
-
-                            INstructionswindow_GUI iNstructionswindow = new INstructionswindow_GUI(usernameField.getText().toString());
-                            iNstructionswindow.setVisible(true);
-                            Main_Screen_GUI mainScreenGui = new Main_Screen_GUI(usernameField.getText().toString());
-
-
-                        }
+                        // Validate credentials
+                        return Database.login_user(username, password);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        return false;
                     }
-                }else if(!logedin &&count < 3) {
-                      count++;
-                    JOptionPane.showMessageDialog(LoginScreenGrid_GUI.this, "שם משתמש או סיסמא אינם נכונים ",
-                            "פירטי התחברות שגויים", JOptionPane.ERROR_MESSAGE);
-
-                }else {
-                    Block_message_GUI blockMessageGui = new Block_message_GUI();
-                    blockMessageGui.setVisible(true);
-                    userBlocker.blockUser(usernameField.getText().toString(),600);
-
                 }
 
-            }
+                @Override
+                protected void done() {
+                    try {
+                        boolean loggedIn = get();
+                        if (loggedIn) {
+                            JOptionPane.showMessageDialog(null, "Login successful!");
+                            dispose(); // close login screen
+                            // open your main GUI window
+                            Managment_system_main_screen_GUI main =
+                                    new Managment_system_main_screen_GUI("127.0.0.1:3306", 9999);
+                            main.setVisible(true);
+                        } else {
+                            JOptionPane.showMessageDialog(null,
+                                    "Invalid username or password", "Login Failed",
+                                    JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(null,
+                                "Connection error: " + ex.getMessage(),
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    } finally {
+                        loginButton.setEnabled(true);
+                    }
+                }
+            }.execute();
         });
 
 

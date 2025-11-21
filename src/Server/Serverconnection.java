@@ -1,6 +1,7 @@
 package Server;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import java.io.*;
@@ -32,11 +33,14 @@ public class Serverconnection {
     public synchronized void connect() throws IOException {
         if (socket != null && socket.isConnected() && !socket.isClosed()) return;
 
-        socket = new Socket(SERVER_IP, SERVER_PORT);
+//        socket = new Socket(SERVER_IP, SERVER_PORT);
+
+        socket = new Socket();
+        socket.connect(new InetSocketAddress(SERVER_IP, SERVER_PORT), 3000); // 3s timeout
 
         // סדר חשוב!
-        objOut = new ObjectOutputStream(socket.getOutputStream());
-        objIn  = new ObjectInputStream (socket.getInputStream());
+//        objOut = new ObjectOutputStream(socket.getOutputStream());
+//        objIn  = new ObjectInputStream (socket.getInputStream());
         dataOut = new DataOutputStream(socket.getOutputStream());
         dataIn  = new DataInputStream (socket.getInputStream());
 
